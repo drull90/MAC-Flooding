@@ -103,8 +103,8 @@ int main(){
     //Enviando el frame
 
     struct sockaddr_ll sadr_ll;
-    sadr_ll.sll_ifindex = 2;
-    sadr_ll.sll_halen = ETH_ALEN;
+    sadr_ll.sll_ifindex = 2;        //Numero de interfaz
+    sadr_ll.sll_halen = ETH_ALEN;   //Tamaño de la direccion
     sadr_ll.sll_addr[0] = DESTMAC0;
     sadr_ll.sll_addr[1] = DESTMAC1;
     sadr_ll.sll_addr[2] = DESTMAC2;

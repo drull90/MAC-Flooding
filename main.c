@@ -32,11 +32,12 @@ int main(){
     int SRCMAC4 = 0x0A;
     int SRCMAC5 = 0x0A;
 
-    unsigned char* sendbuff;
     int total_len = 0;
+    unsigned char* sendbuff;
 
     struct ifreq ifreq_i;
     struct ifreq ifreq_ip;
+    struct ethhdr *eth;
 
     //Creamos un rawSocket
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
@@ -62,7 +63,7 @@ int main(){
     sendbuff = (unsigned char*) malloc(64);
     memset(sendbuff, 0, 64);
 
-    struct ethhdr *eth = (struct ethhdr*)(sendbuff);
+    eth = (struct ethhdr*)(sendbuff);
 
     eth->h_source[0] = SRCMAC0;
     eth->h_source[1] = SRCMAC1;
@@ -78,12 +79,12 @@ int main(){
     eth->h_dest[4] = DESTMAC4;
     eth->h_dest[5] = DESTMAC5;
 
-    eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
+    //eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
 
     total_len += sizeof(struct ethhdr);
 
     // Cabezera de ip
-    struct iphdr* iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
+    /*struct iphdr* iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
     iph->ihl = 5;
     iph->version = 4;
     iph->tos = 16;
@@ -105,14 +106,13 @@ int main(){
     total_len += sizeof(struct udphdr);
 
     //Añadimos payload
-    
     sendbuff[total_len++] = 0xAA;
     sendbuff[total_len++] = 0xBB;
     sendbuff[total_len++] = 0xCC;
     sendbuff[total_len++] = 0xDD;
     sendbuff[total_len++] = 0xEE;
 
-    uh->len = htons((total_len - sizeof(struct iphdr) - sizeof(struct ethhdr)));
+    uh->len = htons((total_len - sizeof(struct iphdr) - sizeof(struct ethhdr)));*/
 
     iph->tot_len = htons(total_len - sizeof(struct ethhdr));
 

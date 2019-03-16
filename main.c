@@ -116,7 +116,7 @@ int main(){
 
     iph->tot_len = htons(total_len - sizeof(struct ethhdr));
 
-    iph->check = checksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
+    iph->check = mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
 
     //Enviando el frame
 

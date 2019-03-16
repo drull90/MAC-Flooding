@@ -1,6 +1,7 @@
 #include "ethernetFrame.h"
+#include <arpa/inet.h>
 
-unsigned short checksum(unsigned short* buff, int _16bitword){
+unsigned short mychecksum(unsigned short* buff, int _16bitword){
     unsigned long sum;
     for(sum = 0; _16bitword > 0; --_16bitword)
         sum += htons(*(buff)++);

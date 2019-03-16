@@ -18,20 +18,6 @@
 
 int main(){
 
-    int DESTMAC0 = 0x30;
-    int DESTMAC1 = 0x9C;
-    int DESTMAC2 = 0x23;
-    int DESTMAC3 = 0x05;
-    int DESTMAC4 = 0x89;
-    int DESTMAC5 = 0x8C;
-
-    int SRCMAC0 = 0x0A;
-    int SRCMAC1 = 0x0A;
-    int SRCMAC2 = 0x0A;
-    int SRCMAC3 = 0x0A;
-    int SRCMAC4 = 0x0A;
-    int SRCMAC5 = 0x0A;
-
     int total_len = 0;
     char* if_name = "";
     unsigned char* sendbuff;
@@ -52,7 +38,7 @@ int main(){
     obtenerNombreInterfaz(if_name);
 
     //Obtenemos el numero de nuestra interfaz
-    obtenerNumeroInterfaz(ifreq_ip, sock_raw);
+    obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name);
 
     //Construimos la cabezera ethernet
     sendbuff = (unsigned char*) malloc(64);
@@ -67,7 +53,7 @@ int main(){
     // Cabezera de ip
     iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
 
-    construirCabezeraIp(iph, total_len);
+    construirCabezeraIp(iph, total_len, ifreq_ip);
 
     total_len += sizeof(struct iphdr);
 

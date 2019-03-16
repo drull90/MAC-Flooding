@@ -14,18 +14,7 @@
 #include <sys/ioctl.h>
 #include <linux/ip.h>
 #include <linux/udp.h>
-
-unsigned short checksum(unsigned short* buff, int _16bitword);
-
-unsigned short checksum(unsigned short* buff, int _16bitword){
-    unsigned long sum;
-    for(sum = 0; _16bitword > 0; --_16bitword)
-        sum += htons(*(buff)++);
-    sum = ((sum >> 16) + (sum & 0xFFFF));
-    sum += (sum >> 16);
-    return (unsigned short)(~sum);
-}
-
+#include "ethernetFrame.h"
 
 int main(){
 
@@ -49,6 +38,7 @@ int main(){
     struct ifreq ifreq_i;
     struct ifreq ifreq_ip;
 
+    //Creamos un rawSocket
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
     if(sock_raw == -1)
         printf("Error abriendo el socket");

@@ -33,91 +33,46 @@ int main(){
     int SRCMAC5 = 0x0A;
 
     int total_len = 0;
+    char* if_name = "";
     unsigned char* sendbuff;
 
-    struct ifreq ifreq_i;
     struct ifreq ifreq_ip;
     struct ethhdr* eth;
     struct iphdr* iph;
+    struct sockaddr_ll sadr_ll;
 
     //Creamos un rawSocket
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
+
+    //Verificamos que el socket se creo correctamente
     if(sock_raw == -1)
         printf("Error abriendo el socket");
 
-    //Obtenemos el index de nuestra interfaz de red
-    memset(&ifreq_i, 0, sizeof(ifreq_i));
-    strncpy(ifreq_i.ifr_name, "enp1s0", IFNAMSIZ - 1);
+    //Obtenemos el nombre de la interfaz a usar
+    obtenerNombreInterfaz(if_name);
 
-    if((ioctl(sock_raw, SIOCGIFINDEX, &ifreq_i)) < 0)
-        printf("Error en index\n");
-
-    printf("Index = %i\n", ifreq_i.ifr_ifindex);
-
-    memset(&ifreq_ip, 0, sizeof(ifreq_ip));
-    strncpy(ifreq_ip.ifr_name, "enp1s0", IFNAMSIZ - 1);
-    if(ioctl(sock_raw, SIOCGIFADDR, &ifreq_ip) < 0)
-        printf("Error en SIOCGIFADDR");
+    //Obtenemos el numero de nuestra interfaz
+    obtenerNumeroInterfaz(*ifreq_ip, sock_raw);
 
     //Construimos la cabezera ethernet
-
     sendbuff = (unsigned char*) malloc(64);
     memset(sendbuff, 0, 64);
 
     eth = (struct ethhdr*)(sendbuff);
 
-    eth->h_source[0] = SRCMAC0;
-    eth->h_source[1] = SRCMAC1;
-    eth->h_source[2] = SRCMAC2;
-    eth->h_source[3] = SRCMAC3;
-    eth->h_source[4] = SRCMAC4;
-    eth->h_source[5] = SRCMAC5;
-
-    eth->h_dest[0] = DESTMAC0;
-    eth->h_dest[1] = DESTMAC1;
-    eth->h_dest[2] = DESTMAC2;
-    eth->h_dest[3] = DESTMAC3;
-    eth->h_dest[4] = DESTMAC4;
-    eth->h_dest[5] = DESTMAC5;
-
-    eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
+    construirCabezeraEthernet(eth);
 
     total_len += sizeof(struct ethhdr);
 
     // Cabezera de ip
     iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
-    iph->ihl = 5;                   // ???
-    iph->version = 4;               // ???
-    iph->tos = 16;                  //Tipo de servicio ip ???
-    //iph->id = htons(10201);         //Identificador
-    iph->ttl = 64;                  //Vida del paquete
-    //iph->protocol = 17;              //Protocolo ip
-    iph->saddr = inet_addr(inet_ntoa((((struct sockaddr_in*)&(ifreq_ip.ifr_addr))->sin_addr))); //Ip source
+
+    construirCabezeraIp(iph total_len);
 
     total_len += sizeof(struct iphdr);
 
-    iph->tot_len = htons(total_len - sizeof(struct ethhdr));
-
-    iph->check = 0; //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
-
-    //Enviando el frame
-
-    struct sockaddr_ll sadr_ll;
-    sadr_ll.sll_ifindex = 2;        //Numero de interfaz
-    sadr_ll.sll_halen = ETH_ALEN;   //Tamaño de la direccion
-    sadr_ll.sll_addr[0] = DESTMAC0;
-    sadr_ll.sll_addr[1] = DESTMAC1;
-    sadr_ll.sll_addr[2] = DESTMAC2;
-    sadr_ll.sll_addr[3] = DESTMAC3;
-    sadr_ll.sll_addr[4] = DESTMAC4;
-    sadr_ll.sll_addr[5] = DESTMAC5;
-
-    //Lo enviamos
-    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*)&sadr_ll, sizeof(struct sockaddr_ll));
-    if(send_len < 0)
-        printf("Error en sendto : sendlen = %i\n", send_len);
-    else
-        printf("Envio exitoso");    
+    //Enviamos el frame
+    enviarFrame(*sadr_ll, sock_raw, sendbuff);
 
     return 0;
 }

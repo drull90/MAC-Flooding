@@ -98,3 +98,28 @@ void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendb
         printf("Envio exitoso");    
 
 }
+
+void ponerMacDestino(struct macDest* mdest){
+
+    mdest->DESTMAC[0] = 0xAA;
+    mdest->DESTMAC[1] = 0xAA;
+    mdest->DESTMAC[2] = 0xAA;
+    mdest->DESTMAC[3] = 0xAA;
+    mdest->DESTMAC[4] = 0xAA;
+    mdest->DESTMAC[5] = 0xAA;
+
+}
+
+void ponerMacOrigen(struct macSrc* msrc){
+    int i;
+    int hex;
+    for( i = 1; i <= 6; ++i){
+        do{
+            printf("Introduce el bloque %i/6 de la mac origen", i);
+            fflush(stdin);
+            scanf("%x",&hex);
+        }while(hex < 0x00 || hex > 0xFF);
+        src->SRCMAC[i] = hex;
+    }
+
+}

@@ -26,6 +26,8 @@ int main(){
     struct ethhdr* eth;
     struct iphdr* iph;
     struct sockaddr_ll* sadr_ll;
+    struct macDest* mdest;
+    struct macSrc* msrc;
 
     //Creamos un rawSocket
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
@@ -39,6 +41,11 @@ int main(){
 
     //Obtenemos el numero de nuestra interfaz
     obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name);
+
+    //No importa la macdestino para hacer MAC Flooding
+    ponerMacDestino(mdest);
+
+    ponerMacOrigen(msrc);
 
     //Construimos la cabezera ethernet
     sendbuff = (unsigned char*) malloc(64);

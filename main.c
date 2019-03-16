@@ -18,14 +18,14 @@
 
 int main(){
 
-    int DESTMAC0 = 0xB8;
-    int DESTMAC1 = 0x27;
-    int DESTMAC2 = 0xEB;
-    int DESTMAC3 = 0xCF;
-    int DESTMAC4 = 0x5A;
-    int DESTMAC5 = 0x90;
+    int DESTMAC0 = 0x30;
+    int DESTMAC1 = 0x9C;
+    int DESTMAC2 = 0x23;
+    int DESTMAC3 = 0x05;
+    int DESTMAC4 = 0x89;
+    int DESTMAC5 = 0x8C;
 
-    int SRCMAC0 = 0x0B;
+    int SRCMAC0 = 0x0A;
     int SRCMAC1 = 0x0A;
     int SRCMAC2 = 0x0A;
     int SRCMAC3 = 0x0A;
@@ -37,7 +37,8 @@ int main(){
 
     struct ifreq ifreq_i;
     struct ifreq ifreq_ip;
-    struct ethhdr *eth;
+    struct ethhdr* eth;
+    struct iphdr* iph;
 
     //Creamos un rawSocket
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
@@ -79,44 +80,25 @@ int main(){
     eth->h_dest[4] = DESTMAC4;
     eth->h_dest[5] = DESTMAC5;
 
-    //eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
+    eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
 
     total_len += sizeof(struct ethhdr);
 
     // Cabezera de ip
-    /*struct iphdr* iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
-    iph->ihl = 5;
-    iph->version = 4;
-    iph->tos = 16;
-    iph->id = htons(10201);
-    iph->ttl = 64;
-    iph->protocol = 17;
-    iph->saddr = inet_addr(inet_ntoa((((struct sockaddr_in*)&(ifreq_ip.ifr_addr))->sin_addr)));
-    iph->daddr = inet_addr("192.168.0.3");
+    iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
+    iph->ihl = 5;                   // ???
+    iph->version = 4;               // ???
+    iph->tos = 16;                  //Tipo de servicio ip ???
+    //iph->id = htons(10201);         //Identificador
+    iph->ttl = 64;                  //Vida del paquete
+    //iph->protocol = 17;              //Protocolo ip
+    iph->saddr = inet_addr(inet_ntoa((((struct sockaddr_in*)&(ifreq_ip.ifr_addr))->sin_addr))); //Ip source
 
     total_len += sizeof(struct iphdr);
 
-    //Cabezera UDP
-    struct udphdr* uh = (struct udphdr*)(sendbuff + sizeof(struct iphdr) + sizeof(struct ethhdr));
-
-    uh->source = htons(23451);
-    uh->dest = htons(23452);
-    uh->check = 0;
-
-    total_len += sizeof(struct udphdr);
-
-    //Añadimos payload
-    sendbuff[total_len++] = 0xAA;
-    sendbuff[total_len++] = 0xBB;
-    sendbuff[total_len++] = 0xCC;
-    sendbuff[total_len++] = 0xDD;
-    sendbuff[total_len++] = 0xEE;
-
-    uh->len = htons((total_len - sizeof(struct iphdr) - sizeof(struct ethhdr)));*/
-
     iph->tot_len = htons(total_len - sizeof(struct ethhdr));
 
-    iph->check = mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
+    iph->check = 0; //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
 
     //Enviando el frame
 

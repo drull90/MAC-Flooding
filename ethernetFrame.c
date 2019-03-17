@@ -27,7 +27,7 @@ unsigned short mychecksum(unsigned short* buff, int _16bitword){
 
 void obtenerNombreInterfaz(char* interfaz){
 
-    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\n");
+    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig para ver las interfaces disponibles");
     fflush(stdin);
     fgets(interfaz, 10, stdin);
 
@@ -51,7 +51,9 @@ void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, 
 
 }
 
-void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest){
+void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest, int* total_len){
+
+    eth = (struct ethhdr*)(sendbuff);
 
     eth->h_source[0] = msrc->SRCMAC[0];
     eth->h_source[1] = msrc->SRCMAC[1];
@@ -69,19 +71,25 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
     eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
 
+    total_len += sizeof(struct ethhdr);
+
 }
 
-void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip){
+void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip, int* total_len){
 
-    iph->ihl = 5;                                                                               // ???
-    iph->version = 4;                                                                           // ???
-    iph->tos = 1;                                                                               //Tipo de servicio ip ???
-    iph->ttl = 64;                                                                              //Vida del paquete
-    iph->saddr = inet_addr(inet_ntoa((( (struct sockaddr_in*) &ifreq_ip->ifr_addr )->sin_addr)));  //Ip source
-    iph->tot_len = htons(total_len - sizeof(struct ethhdr));                                    // ???
-    iph->check = 0;                                                                             //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
-    iph->protocol = 29;                                                                       //Protocolo ip (iso-tp4) list of ip protocol numbers
-    //iph->id = htons(10201);                                                                   //Identificador
+    iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
+
+    iph->ihl = 5;                                                                                   // ???
+    iph->version = 4;                                                                               // ???
+    iph->tos = 1;                                                                                   //Tipo de servicio ip ???
+    iph->ttl = 64;                                                                                  //Vida del paquete
+    iph->saddr = inet_addr(inet_ntoa((( (struct sockaddr_in*) &ifreq_ip->ifr_addr )->sin_addr)));   //Ip source
+    iph->tot_len = htons(total_len - sizeof(struct ethhdr));                                        // ???
+    iph->check = 0;                                                                                 //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
+    iph->protocol = 29;                                                                             //Protocolo ip (iso-tp4) list of ip protocol numbers
+    //iph->id = htons(10201);                                                                       //Identificador
+
+    total_len += sizeof(struct iphdr);
 
 }
 
@@ -107,7 +115,7 @@ void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendb
 
 void ponerMacDestino(struct macDest* mdest){
 
-    mdest->DESTMAC[0] = 0xAB;
+    mdest->DESTMAC[0] = 0xAA;
     mdest->DESTMAC[1] = 0xAA;
     mdest->DESTMAC[2] = 0xAA;
     mdest->DESTMAC[3] = 0xAA;
@@ -116,16 +124,59 @@ void ponerMacDestino(struct macDest* mdest){
 
 }
 
-void ponerMacOrigen(struct macSrc* msrc){
+void inizializarMacOrigen(struct macSrc* msrc, int modo){
+
+    if(modo == 0){
+
+        for( i = 1; i <= 6; ++i){
+            do{
+                printf("Introduce el bloque %i/6 de MAC Origen desde donde empezar el ataquen\n", i);
+                fflush(stdin);
+                scanf("%x",&hex);
+            }while(hex < 0x00 || hex > 0xFF);
+            msrc->SRCMAC[i-1] = hex;
+        }
+
+    }
+
+}
+
+void ponerMacOrigen(struct macSrc* msrc, int modo){
+
     int i;
     int hex;
-    for( i = 1; i <= 6; ++i){
-        do{
-            printf("Introduce el bloque %i/6 de la mac origen\n", i);
-            fflush(stdin);
-            scanf("%x",&hex);
-        }while(hex < 0x00 || hex > 0xFF);
-        msrc->SRCMAC[i-1] = hex;
+
+    if(modo == 0){                                  //Modo automatico
+
+        sumarMac(msrc);
+
+    }
+    else{                                           //Modo manual
+
+        for( i = 1; i <= 6; ++i){
+            do{
+                printf("Introduce el bloque %i/6 de la mac origen\n", i);
+                fflush(stdin);
+                scanf("%x",&hex);
+            }while(hex < 0x00 || hex > 0xFF);
+            msrc->SRCMAC[i-1] = hex;
+        }
+
+    }
+
+}
+
+void sumarMac(struct macSrc* msrc){
+
+    int i = 0;
+
+    msrc->SRCMAC[0] += 1;               //Sumamos 1 a la mac anterior
+
+    for( i = 0; i < 4; ++i){            //Revisamos que la mac no sobrepase 0xFF, i < 4 => i + 1 = 5
+        if(msrc->SRCMAC[i] > 0xFF){
+            msrc->SRCMAC[i] = 0;
+            msrc->SRCMAC[i+1] += 1;     //Max i+1 = 5
+        }
     }
 
 }
@@ -140,4 +191,25 @@ void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc){
     eth->h_source[3] = msrc->SRCMAC[3];
     eth->h_source[4] = msrc->SRCMAC[4];
     eth->h_source[5] = msrc->SRCMAC[5];
+}
+
+int modoDeUso(int* repeticiones){
+
+    int op;
+    do{
+        printf("Introduce 0 para uso automatico, o 1 para uso manual");
+        scanf("%i", &op);
+    }while(op < 0 || op > 1);
+
+    if(op == 0){                                                //Uso automatico
+        do{
+            printf("Introduce el numero de Frames a enviar\n");
+            fflush(stdin);
+            scanf("%i", repeticiones);
+        }while(*repeticiones < 0);
+        
+    }                         
+
+
+    return op;
 }

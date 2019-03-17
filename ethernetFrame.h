@@ -9,14 +9,17 @@ struct macSrc{
     int SRCMAC[6];
 };
 
-unsigned short mychecksum(unsigned short* buff, int _16bitword);
-void obtenerNombreInterfaz(char* interfaz);
-void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, int* number);
-void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc*, struct macDest*);
-void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq*);
-void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest*, int if_number);
+unsigned short mychecksum(unsigned short*, int);
+void obtenerNombreInterfaz(char*);
+void obtenerNumeroInterfaz(struct ifreq*, int, char*, int*);
+void construirCabezeraEthernet(struct ethhdr*, struct macSrc*, struct macDest*, int*);
+void construirCabezeraIp(struct iphdr*, int, struct ifreq*, int*);
+void enviarFrame(struct sockaddr_ll*, int, unsigned char*, struct macDest*, int);
 void ponerMacDestino(struct macDest*);
-void ponerMacOrigen(struct macSrc*);
-void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc);
+void ponerMacOrigen(struct macSrc*, int);
+void cambiarMacOrigenEthernet(struct ethhdr*, struct macSrc*);
+void inizializarMacOrigen(struct macSrc*, int);
+void sumarMac(struct macSrc*)
+int modoDeUso(int*);
 
 #endif

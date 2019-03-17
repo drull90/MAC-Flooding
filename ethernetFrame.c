@@ -26,40 +26,45 @@ unsigned short mychecksum(unsigned short* buff, int _16bitword){
 }
 
 void obtenerNombreInterfaz(char* interfaz){
-    printf("Introduce el nombre de la interfaz a usar\n");
+
+    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\n");
     fflush(stdin);
-    scanf("%s", interfaz);
-    if(strcmp(interfaz, "") == 0)
+    fgets(interfaz, 10, stdin);
+
+    if(strcmp(interfaz, "0\n") == 0 || interfaz == NULL)
         strcpy(interfaz, "enp1s0");
+
+    printf("Interfaz : %s\n", interfaz);
+
 }
 
-void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name){
+void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int *sock_raw, char* if_name){
 
-    memset(&ifreq_ip, 0, sizeof(ifreq_ip));
+    memset(ifreq_ip, 0, sizeof(ifreq_ip));    
     strncpy(ifreq_ip->ifr_name, if_name, IFNAMSIZ - 1);
 
-    if(ioctl(sock_raw, SIOCGIFADDR, &ifreq_ip) < 0)
-        printf("Error en SIOCGIFADDR");
+    if(ioctl(*sock_raw, SIOCGIFADDR, ifreq_ip) < 0)
+        printf("Error en SIOCGIFADDR\n");
 
     printf("Index del interfaz : %i\n", ifreq_ip->ifr_ifindex);
 
 }
 
-void construirCabezeraEthernet(struct ethhdr* eth){
+void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest){
 
-    eth->h_source[0] = SRCMAC0;
-    eth->h_source[1] = SRCMAC1;
-    eth->h_source[2] = SRCMAC2;
-    eth->h_source[3] = SRCMAC3;
-    eth->h_source[4] = SRCMAC4;
-    eth->h_source[5] = SRCMAC5;
+    eth->h_source[0] = msrc->SRCMAC[0];
+    eth->h_source[1] = msrc->SRCMAC[1];
+    eth->h_source[2] = msrc->SRCMAC[2];
+    eth->h_source[3] = msrc->SRCMAC[3];
+    eth->h_source[4] = msrc->SRCMAC[4];
+    eth->h_source[5] = msrc->SRCMAC[5];
 
-    eth->h_dest[0] = DESTMAC0;
-    eth->h_dest[1] = DESTMAC1;
-    eth->h_dest[2] = DESTMAC2;
-    eth->h_dest[3] = DESTMAC3;
-    eth->h_dest[4] = DESTMAC4;
-    eth->h_dest[5] = DESTMAC5;
+    eth->h_dest[0] = mdest->DESTMAC[0];
+    eth->h_dest[1] = mdest->DESTMAC[1];
+    eth->h_dest[2] = mdest->DESTMAC[2];
+    eth->h_dest[3] = mdest->DESTMAC[3];
+    eth->h_dest[4] = mdest->DESTMAC[4];
+    eth->h_dest[5] = mdest->DESTMAC[5];
 
     eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
 
@@ -79,16 +84,16 @@ void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_i
 
 }
 
-void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff){
+void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest* mdest){
 
     sadr_ll->sll_ifindex = 2;        //Numero de interfaz
     sadr_ll->sll_halen = ETH_ALEN;   //Tamaño de la direccion
-    sadr_ll->sll_addr[0] = DESTMAC0;
-    sadr_ll->sll_addr[1] = DESTMAC1;
-    sadr_ll->sll_addr[2] = DESTMAC2;
-    sadr_ll->sll_addr[3] = DESTMAC3;
-    sadr_ll->sll_addr[4] = DESTMAC4;
-    sadr_ll->sll_addr[5] = DESTMAC5;
+    sadr_ll->sll_addr[0] = mdest->DESTMAC[0];
+    sadr_ll->sll_addr[1] = mdest->DESTMAC[1];
+    sadr_ll->sll_addr[2] = mdest->DESTMAC[2];
+    sadr_ll->sll_addr[3] = mdest->DESTMAC[3];
+    sadr_ll->sll_addr[4] = mdest->DESTMAC[4];
+    sadr_ll->sll_addr[5] = mdest->DESTMAC[5];
 
     //Lo enviamos
     int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*)&sadr_ll, sizeof(struct sockaddr_ll));
@@ -115,11 +120,11 @@ void ponerMacOrigen(struct macSrc* msrc){
     int hex;
     for( i = 1; i <= 6; ++i){
         do{
-            printf("Introduce el bloque %i/6 de la mac origen", i);
+            printf("Introduce el bloque %i/6 de la mac origen\n", i);
             fflush(stdin);
             scanf("%x",&hex);
         }while(hex < 0x00 || hex > 0xFF);
-        src->SRCMAC[i] = hex;
+        msrc->SRCMAC[i] = hex;
     }
 
 }

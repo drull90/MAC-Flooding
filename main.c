@@ -45,6 +45,7 @@ int main(){
     //No importa la macdestino para hacer MAC Flooding
     ponerMacDestino(mdest);
 
+    //Ponemos la mac origen
     ponerMacOrigen(msrc);
 
     //Construimos la cabezera ethernet
@@ -60,7 +61,7 @@ int main(){
     // Cabezera de ip
     iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
 
-    construirCabezeraIp(iph, total_len, ifreq_ip);
+    construirCabezeraIp(iph, &total_len, ifreq_ip);
 
     total_len += sizeof(struct iphdr);
 

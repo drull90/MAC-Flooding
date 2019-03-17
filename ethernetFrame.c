@@ -70,7 +70,7 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
 }
 
-void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip){
+void construirCabezeraIp(struct iphdr* iph, int *total_len, struct ifreq* ifreq_ip){
 
     iph->ihl = 5;                                                                               // ???
     iph->version = 4;                                                                           // ???

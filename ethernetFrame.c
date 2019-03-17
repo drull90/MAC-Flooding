@@ -38,14 +38,15 @@ void obtenerNombreInterfaz(char* interfaz){
 
 }
 
-void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int *sock_raw, char* if_name){
+void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, int* number){
 
     memset(ifreq_ip, 0, sizeof(ifreq_ip));    
     strncpy(ifreq_ip->ifr_name, if_name, IFNAMSIZ - 1);
 
-    if(ioctl(*sock_raw, SIOCGIFADDR, ifreq_ip) < 0)
+    if(ioctl(sock_raw, SIOCGIFADDR, ifreq_ip) < 0)
         printf("Error en SIOCGIFADDR\n");
 
+    *number = ifreq_ip->ifr_ifindex;
     printf("Index del interfaz : %i\n", ifreq_ip->ifr_ifindex);
 
 }
@@ -70,23 +71,23 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
 }
 
-void construirCabezeraIp(struct iphdr* iph, int *total_len, struct ifreq* ifreq_ip){
+void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip){
 
     iph->ihl = 5;                                                                               // ???
     iph->version = 4;                                                                           // ???
-    iph->tos = 16;                                                                              //Tipo de servicio ip ???
+    iph->tos = 1;                                                                               //Tipo de servicio ip ???
     iph->ttl = 64;                                                                              //Vida del paquete
-    iph->saddr = inet_addr(inet_ntoa((((struct sockaddr_in*)&(ifreq_ip->ifr_addr))->sin_addr))); //Ip source
+    iph->saddr = inet_addr(inet_ntoa((( (struct sockaddr_in*) &ifreq_ip->ifr_addr )->sin_addr)));  //Ip source
     iph->tot_len = htons(total_len - sizeof(struct ethhdr));                                    // ???
     iph->check = 0;                                                                             //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
-    //iph->protocol = 17;                                                                       //Protocolo ip
+    iph->protocol = 29;                                                                       //Protocolo ip (iso-tp4) list of ip protocol numbers
     //iph->id = htons(10201);                                                                   //Identificador
 
 }
 
-void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest* mdest){
+void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest* mdest, int if_number){
 
-    sadr_ll->sll_ifindex = 2;        //Numero de interfaz
+    sadr_ll->sll_ifindex = if_number;        //Numero de interfaz
     sadr_ll->sll_halen = ETH_ALEN;   //Tamaño de la direccion
     sadr_ll->sll_addr[0] = mdest->DESTMAC[0];
     sadr_ll->sll_addr[1] = mdest->DESTMAC[1];
@@ -96,17 +97,17 @@ void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendb
     sadr_ll->sll_addr[5] = mdest->DESTMAC[5];
 
     //Lo enviamos
-    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*)&sadr_ll, sizeof(struct sockaddr_ll));
+    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*) sadr_ll, sizeof(struct sockaddr_ll));
     if(send_len < 0)
         printf("Error en sendto : sendlen = %i\n", send_len);
     else
-        printf("Envio exitoso");    
+        printf("Envio exitoso\n");    
 
 }
 
 void ponerMacDestino(struct macDest* mdest){
 
-    mdest->DESTMAC[0] = 0xAA;
+    mdest->DESTMAC[0] = 0xAB;
     mdest->DESTMAC[1] = 0xAA;
     mdest->DESTMAC[2] = 0xAA;
     mdest->DESTMAC[3] = 0xAA;
@@ -124,7 +125,19 @@ void ponerMacOrigen(struct macSrc* msrc){
             fflush(stdin);
             scanf("%x",&hex);
         }while(hex < 0x00 || hex > 0xFF);
-        msrc->SRCMAC[i] = hex;
+        msrc->SRCMAC[i-1] = hex;
     }
 
+}
+
+void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc){
+
+    ponerMacOrigen(msrc);
+
+    eth->h_source[0] = msrc->SRCMAC[0];
+    eth->h_source[1] = msrc->SRCMAC[1];
+    eth->h_source[2] = msrc->SRCMAC[2];
+    eth->h_source[3] = msrc->SRCMAC[3];
+    eth->h_source[4] = msrc->SRCMAC[4];
+    eth->h_source[5] = msrc->SRCMAC[5];
 }

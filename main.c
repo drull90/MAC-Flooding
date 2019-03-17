@@ -19,13 +19,14 @@
 int main(){
 
     int total_len = 0;
+    int if_number;
     char if_name[10];
     unsigned char* sendbuff;
 
     struct ifreq* ifreq_ip = malloc(sizeof(struct ifreq));
     struct ethhdr* eth;
     struct iphdr* iph;
-    struct sockaddr_ll* sadr_ll;
+    struct sockaddr_ll* sadr_ll = malloc(sizeof(struct sockaddr_ll));
     struct macDest* mdest = malloc(sizeof(struct macDest));
     struct macSrc* msrc = malloc(sizeof(struct macSrc));
 
@@ -40,7 +41,7 @@ int main(){
     obtenerNombreInterfaz(if_name);
 
     //Obtenemos el numero de nuestra interfaz
-    obtenerNumeroInterfaz(ifreq_ip, &sock_raw, if_name);
+    obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name, &if_number);
 
     //No importa la macdestino para hacer MAC Flooding
     ponerMacDestino(mdest);
@@ -61,28 +62,16 @@ int main(){
     // Cabezera de ip
     iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
 
-    construirCabezeraIp(iph, &total_len, ifreq_ip);
+    construirCabezeraIp(iph, total_len, ifreq_ip);
 
     total_len += sizeof(struct iphdr);
 
     //Enviamos el frame
-    //enviarFrame(sadr_ll, sock_raw, sendbuff, mdest);
+    enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);
 
-    sadr_ll->sll_ifindex = 2;        //Numero de interfaz
-    sadr_ll->sll_halen = ETH_ALEN;   //Tamaño de la direccion
-    sadr_ll->sll_addr[0] = mdest->DESTMAC[0];
-    sadr_ll->sll_addr[1] = mdest->DESTMAC[1];
-    sadr_ll->sll_addr[2] = mdest->DESTMAC[2];
-    sadr_ll->sll_addr[3] = mdest->DESTMAC[3];
-    sadr_ll->sll_addr[4] = mdest->DESTMAC[4];
-    sadr_ll->sll_addr[5] = mdest->DESTMAC[5];
+    cambiarMacOrigenEthernet(eth, msrc);
 
-    //Lo enviamos
-    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*)&sadr_ll, sizeof(struct sockaddr_ll));
-    if(send_len < 0)
-        printf("Error en sendto : sendlen = %i\n", send_len);
-    else
-        printf("Envio exitoso");   
+    enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);
 
     return 0;
 }

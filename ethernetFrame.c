@@ -27,7 +27,7 @@ unsigned short mychecksum(unsigned short* buff, int _16bitword){
 
 void obtenerNombreInterfaz(char* interfaz){
 
-    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig para ver las interfaces disponibles");
+    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig para ver las interfaces disponibles\n");
     fflush(stdin);
     fgets(interfaz, 10, stdin);
 
@@ -51,7 +51,7 @@ void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, 
 
 }
 
-void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest, int* total_len){
+void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest, int* total_len, unsigned char* sendbuff){
 
     eth = (struct ethhdr*)(sendbuff);
 
@@ -75,7 +75,7 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
 }
 
-void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip, int* total_len){
+void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip, unsigned char* sendbuff){
 
     iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
 
@@ -125,6 +125,9 @@ void ponerMacDestino(struct macDest* mdest){
 }
 
 void inizializarMacOrigen(struct macSrc* msrc, int modo){
+
+    int i = 0;
+    int hex;
 
     if(modo == 0){
 
@@ -181,9 +184,9 @@ void sumarMac(struct macSrc* msrc){
 
 }
 
-void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc){
+void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc, int modo){
 
-    ponerMacOrigen(msrc);
+    ponerMacOrigen(msrc, modo);
 
     eth->h_source[0] = msrc->SRCMAC[0];
     eth->h_source[1] = msrc->SRCMAC[1];
@@ -193,11 +196,11 @@ void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc){
     eth->h_source[5] = msrc->SRCMAC[5];
 }
 
-int modoDeUso(int* repeticiones){
+int menuDeUso(int* repeticiones){
 
     int op;
     do{
-        printf("Introduce 0 para uso automatico, o 1 para uso manual");
+        printf("Introduce 0 para uso automatico, o 1 para uso manual\n");
         scanf("%i", &op);
     }while(op < 0 || op > 1);
 

@@ -42,7 +42,7 @@ int main(){
 
     obtenerNumeroInterfaz(ifreq_ip, sock_raw, if_name, &if_number);     //Obtenemos el numero de nuestra interfaz
 
-    modoDeUso = menuDeUso(repeticiones);                                //Obtenemos el modo de uso del programa, si manual, o automatico
+    modoDeUso = menuDeUso(&repeticiones);                               //Obtenemos el modo de uso del programa, si manual, o automatico
 
     ponerMacDestino(mdest);                                             //No importa la macdestino para hacer MAC Flooding
 
@@ -53,9 +53,9 @@ int main(){
     sendbuff = (unsigned char*) malloc(64);                             //Reservamos memoria para el buffer
     memset(sendbuff, 0, 64);
 
-    construirCabezeraEthernet(eth, msrc, mdest, &total_len);            //Construimos la cabezera ethernet
+    construirCabezeraEthernet(eth, msrc, mdest, &total_len, sendbuff);  //Construimos la cabezera ethernet
 
-    construirCabezeraIp(iph, total_len, ifreq_ip, &total_len);          //Construimos la cabezera ip
+    construirCabezeraIp(iph, total_len, ifreq_ip, sendbuff);            //Construimos la cabezera ip
 
     do{
 
@@ -63,11 +63,10 @@ int main(){
 
         if(modoDeUso == 1){                                             //Modo manual
             do{
-                printf("Desea enviar otro frame (s/n)");
+                printf("Desea enviar otro frame (s/n)\n");
                 fflush(stdin);
-                op = getc();
-                tolower(op);
-            }while(op != 's' || op != 'n');
+                scanf("%c", &op);
+            }while(op != 's' || op != 'n' || op != 'S' || op != 'N');
 
         }else{                                                          //Modo automatico
             --repeticiones;
@@ -82,9 +81,9 @@ int main(){
 
         if(op == 's' || repeticiones > 0) ponerMacOrigen(msrc, modoDeUso);
 
-    while(op == 's' || repeticiones > 0);
+    }while(op == 's' || repeticiones > 0);
 
-    printf("MAC Flooding completado")
+    printf("MAC Flooding completado");
 
     return 0;
 }

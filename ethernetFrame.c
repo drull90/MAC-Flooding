@@ -71,7 +71,7 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
     eth->h_proto = htons(ETH_P_IP); //Siguiente header sera el de la ip
 
-    total_len += sizeof(struct ethhdr);
+    *total_len += sizeof(struct ethhdr);
 
 }
 

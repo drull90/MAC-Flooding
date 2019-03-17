@@ -27,7 +27,7 @@ unsigned short mychecksum(unsigned short* buff, int _16bitword){
 
 void obtenerNombreInterfaz(char* interfaz){
 
-    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig para ver las interfaces disponibles\n");
+    printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig en la terminal para ver las interfaces disponibles\n");
     fflush(stdin);
     fgets(interfaz, 10, stdin);
 
@@ -52,8 +52,6 @@ void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, 
 }
 
 void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest, int* total_len, unsigned char* sendbuff){
-
-    eth = (struct ethhdr*)(sendbuff);
 
     eth->h_source[0] = msrc->SRCMAC[0];
     eth->h_source[1] = msrc->SRCMAC[1];
@@ -84,7 +82,7 @@ void construirCabezeraIp(struct iphdr* iph, int *total_len, struct ifreq* ifreq_
     iph->tos = 1;                                                                                   //Tipo de servicio ip ???
     iph->ttl = 64;                                                                                  //Vida del paquete
     iph->saddr = inet_addr(inet_ntoa((( (struct sockaddr_in*) &ifreq_ip->ifr_addr )->sin_addr)));   //Ip source
-    iph->tot_len = htons(*total_len - sizeof(struct ethhdr));                                        // ???
+    iph->tot_len = htons(*total_len - sizeof(struct ethhdr));                                       // ???
     iph->check = 0;                                                                                 //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
     iph->protocol = 29;                                                                             //Protocolo ip (iso-tp4) list of ip protocol numbers
     //iph->id = htons(10201);                                                                       //Identificador
@@ -173,12 +171,12 @@ void sumarMac(struct macSrc* msrc){
 
     int i = 5;
 
-    msrc->SRCMAC[5] += 1;               //Sumamos 1 a la mac anterior
+    msrc->SRCMAC[5] += 0x01;               //Sumamos 1 a la mac anterior
 
     for( i = 5; i > 0; --i){            //Revisamos que la mac no sobrepase 0xFF
         if(msrc->SRCMAC[i] > 0xFF){
-            msrc->SRCMAC[i] = 0;
-            msrc->SRCMAC[i-1] += 1;     //Max i-1 = 0 => i>0
+            msrc->SRCMAC[i] = 0x00;
+            msrc->SRCMAC[i-1] += 0x01;     //Max i-1 = 0 => i>0
         }
     }
 
@@ -194,6 +192,7 @@ void cambiarMacOrigenEthernet(struct ethhdr* eth, struct macSrc* msrc, int modo)
     eth->h_source[3] = msrc->SRCMAC[3];
     eth->h_source[4] = msrc->SRCMAC[4];
     eth->h_source[5] = msrc->SRCMAC[5];
+
 }
 
 int menuDeUso(int* repeticiones){

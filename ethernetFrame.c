@@ -152,6 +152,7 @@ void ponerMacOrigen(struct macSrc* msrc, int modo){
     if(modo == 0){                                  //Modo automatico
 
         sumarMac(msrc);
+        
 
     }
     else{                                           //Modo manual
@@ -171,14 +172,14 @@ void ponerMacOrigen(struct macSrc* msrc, int modo){
 
 void sumarMac(struct macSrc* msrc){
 
-    int i = 0;
+    int i = 5;
 
-    msrc->SRCMAC[0] += 1;               //Sumamos 1 a la mac anterior
+    msrc->SRCMAC[5] += 1;               //Sumamos 1 a la mac anterior
 
-    for( i = 0; i < 4; ++i){            //Revisamos que la mac no sobrepase 0xFF, i < 4 => i + 1 = 5
+    for( i = 5; i > 1; --i){            //Revisamos que la mac no sobrepase 0xFF
         if(msrc->SRCMAC[i] > 0xFF){
             msrc->SRCMAC[i] = 0;
-            msrc->SRCMAC[i+1] += 1;     //Max i+1 = 5
+            msrc->SRCMAC[i-1] += 1;     //Max i+1 = 5
         }
     }
 
@@ -209,7 +210,7 @@ int menuDeUso(int* repeticiones){
             printf("Introduce el numero de Frames a enviar\n");
             fflush(stdin);
             scanf("%i", repeticiones);
-        }while(*repeticiones < 0);
+        }while(*repeticiones < 1);
         
     }                         
 

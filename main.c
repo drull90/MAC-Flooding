@@ -72,7 +72,7 @@ int main(){
             --repeticiones;
             if(repeticiones == 0){
                 do{
-                    printf("Desea enviar mas frames ?, 0 para no enviar mas");
+                    printf("Desea enviar mas frames?, 0 para no enviar mas\n");
                     fflush(stdin);
                     scanf("%i", &repeticiones);
                 }while(repeticiones < 0);

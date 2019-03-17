@@ -53,7 +53,7 @@ void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, 
 
 void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct macDest* mdest, int* total_len, unsigned char* sendbuff){
 
-    eth = (struct ethhdr*)(sendbuff);
+    eth = (struct ethhdr*)(*sendbuff);
 
     eth->h_source[0] = msrc->SRCMAC[0];
     eth->h_source[1] = msrc->SRCMAC[1];
@@ -77,7 +77,7 @@ void construirCabezeraEthernet(struct ethhdr* eth, struct macSrc* msrc, struct m
 
 void construirCabezeraIp(struct iphdr* iph, int total_len, struct ifreq* ifreq_ip, unsigned char* sendbuff){
 
-    iph = (struct iphdr*)(sendbuff + sizeof(struct ethhdr));
+    iph = (struct iphdr*)(*sendbuff + sizeof(struct ethhdr));
 
     iph->ihl = 5;                                                                                   // ???
     iph->version = 4;                                                                               // ???
@@ -105,7 +105,7 @@ void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendb
     sadr_ll->sll_addr[5] = mdest->DESTMAC[5];
 
     //Lo enviamos
-    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*) sadr_ll, sizeof(struct sockaddr_ll));
+    int send_len = sendto(sock_raw, *sendbuff, 64, 0, (const struct sockaddr*) sadr_ll, sizeof(struct sockaddr_ll));
     if(send_len < 0)
         printf("Error en sendto : sendlen = %i\n", send_len);
     else

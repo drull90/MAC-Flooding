@@ -24,7 +24,7 @@ int main(){
     int modoDeUso = 0;                                                  //Modo de uso, 0 auto, 1 manual
     int repeticiones = 0;                                               //Numero de frames a enviar
     char if_name[10];                                                   //Nombre interfaz
-    char op = 'n';
+    int op = 0;
     unsigned char* sendbuff;                                            //Buffer con los datos
 
     struct ethhdr* eth;                                                 //Estructura frame
@@ -63,10 +63,10 @@ int main(){
 
         if(modoDeUso == 1){                                             //Modo manual
             do{
-                printf("Desea enviar otro frame (s/n)\n");
+                printf("Desea enviar otro frame (1 / 0)\n");
                 fflush(stdin);
-                scanf("%c", &op);
-            }while(op != 's' || op != 'n' || op != 'S' || op != 'N');
+                scanf("%i", &op);
+            }while(op < 0 || op > 1);
 
         }else{                                                          //Modo automatico
             --repeticiones;
@@ -79,9 +79,9 @@ int main(){
             }
         }
 
-        if(op == 's' || repeticiones > 0) ponerMacOrigen(msrc, modoDeUso);
+        if(op == 1 || repeticiones > 0) ponerMacOrigen(msrc, modoDeUso);
 
-    }while(op == 's' || repeticiones > 0);
+    }while(op == 1 || repeticiones > 0);
 
     printf("MAC Flooding completado");
 

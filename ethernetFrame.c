@@ -79,16 +79,15 @@ void construirCabezeraIp(struct iphdr* iph, int *total_len, struct ifreq* ifreq_
 
     iph->ihl = 5;                                                                                   // ???
     iph->version = 4;                                                                               // ???
-    iph->tos = 1;                                                                                   //Tipo de servicio ip ???
+    iph->tos = 0;                                                                                   //Tipo de servicio ip ???
     iph->ttl = 64;                                                                                  //Vida del paquete
     iph->saddr = inet_addr(inet_ntoa((( (struct sockaddr_in*) &ifreq_ip->ifr_addr )->sin_addr)));   //Ip source
+    *total_len += sizeof(struct iphdr);                                                             //Ha de ir antes de tot_len, IDK
     iph->tot_len = htons(*total_len - sizeof(struct ethhdr));                                       // ???
     iph->check = 0;                                                                                 //mychecksum((unsigned short*)(sendbuff + sizeof(struct ethhdr)), (sizeof(struct iphdr)/2));
-    iph->protocol = 29;                                                                             //Protocolo ip (iso-tp4) list of ip protocol numbers
+    iph->protocol = 6;                                                                             //Protocolo ip (iso-tp4) list of ip protocol numbers
     //iph->id = htons(10201);                                                                       //Identificador
-
-    *total_len += sizeof(struct iphdr);
-
+    
 }
 
 void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest* mdest, int if_number){
@@ -103,7 +102,7 @@ void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendb
     sadr_ll->sll_addr[5] = mdest->DESTMAC[5];
 
     //Lo enviamos
-    int send_len = sendto(sock_raw, sendbuff, 64, 0, (const struct sockaddr*) sadr_ll, sizeof(struct sockaddr_ll));
+    int send_len = sendto(sock_raw, sendbuff, 60, 0, (const struct sockaddr*) sadr_ll, sizeof(struct sockaddr_ll));
     if(send_len < 0)
         printf("Error en sendto : sendlen = %i\n", send_len);
     else

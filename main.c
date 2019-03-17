@@ -50,8 +50,8 @@ int main(){
 
     ponerMacOrigen(msrc, modoDeUso);                                    //Ponemos la mac origen
 
-    sendbuff = (unsigned char*) malloc(64);                             //Reservamos memoria para el buffer
-    memset(sendbuff, 0, 64);
+    sendbuff = (unsigned char*) malloc(60);                             //Reservamos memoria para el buffer
+    memset(sendbuff, 0, 60);
 	eth = (struct ethhdr*)(sendbuff);
 
     construirCabezeraEthernet(eth, msrc, mdest, &total_len, sendbuff);  //Construimos la cabezera ethernet

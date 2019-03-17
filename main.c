@@ -55,7 +55,7 @@ int main(){
 
     construirCabezeraEthernet(eth, msrc, mdest, &total_len, sendbuff);  //Construimos la cabezera ethernet
 
-    construirCabezeraIp(iph, total_len, ifreq_ip, sendbuff);            //Construimos la cabezera ip
+    construirCabezeraIp(iph, &total_len, ifreq_ip, sendbuff);            //Construimos la cabezera ip
 
     do{
 
@@ -83,7 +83,7 @@ int main(){
 
     }while(op == 1 || repeticiones > 0);
 
-    printf("MAC Flooding completado");
+    printf("MAC Flooding completado\n");
 
     return 0;
 }

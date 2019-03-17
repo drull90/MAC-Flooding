@@ -13,7 +13,7 @@ unsigned short mychecksum(unsigned short*, int);
 void obtenerNombreInterfaz(char*);
 void obtenerNumeroInterfaz(struct ifreq*, int, char*, int*);
 void construirCabezeraEthernet(struct ethhdr*, struct macSrc*, struct macDest*, int*, unsigned char*);
-void construirCabezeraIp(struct iphdr*, int, struct ifreq*, unsigned char*);
+void construirCabezeraIp(struct iphdr*, int*, struct ifreq*, unsigned char*);
 void enviarFrame(struct sockaddr_ll*, int, unsigned char*, struct macDest*, int);
 void ponerMacDestino(struct macDest*);
 void ponerMacOrigen(struct macSrc*, int);

@@ -152,7 +152,6 @@ void ponerMacOrigen(struct macSrc* msrc, int modo){
     if(modo == 0){                                  //Modo automatico
 
         sumarMac(msrc);
-        
 
     }
     else{                                           //Modo manual
@@ -176,10 +175,10 @@ void sumarMac(struct macSrc* msrc){
 
     msrc->SRCMAC[5] += 1;               //Sumamos 1 a la mac anterior
 
-    for( i = 5; i > 1; --i){            //Revisamos que la mac no sobrepase 0xFF
+    for( i = 5; i > 0; --i){            //Revisamos que la mac no sobrepase 0xFF
         if(msrc->SRCMAC[i] > 0xFF){
             msrc->SRCMAC[i] = 0;
-            msrc->SRCMAC[i-1] += 1;     //Max i+1 = 5
+            msrc->SRCMAC[i-1] += 1;     //Max i-1 = 0 => i>0
         }
     }
 

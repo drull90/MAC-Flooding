@@ -79,7 +79,7 @@ int main(){
             }
         }
 
-        if(op == 1 || repeticiones > 0) ponerMacOrigen(msrc, modoDeUso);
+        if(op == 1 || repeticiones > 0) cambiarMacOrigenEthernet(eth, msrc, modoDeUso);
 
     }while(op == 1 || repeticiones > 0);
 

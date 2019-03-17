@@ -29,10 +29,10 @@ int main(){
 
     struct ethhdr* eth;                                                 //Estructura frame
     struct iphdr* iph;                                                  //Estructura de paquete
-    struct ifreq* ifreq_ip = malloc(sizeof(struct ifreq));              // ??
+    struct ifreq* ifreq_ip 		= malloc(sizeof(struct ifreq));         // ??
     struct sockaddr_ll* sadr_ll = malloc(sizeof(struct sockaddr_ll));   // ??
-    struct macDest* mdest = malloc(sizeof(struct macDest));             //Estructura MAC Destino
-    struct macSrc* msrc = malloc(sizeof(struct macSrc));                //Estructura MAC Origen
+    struct macDest* mdest 		= malloc(sizeof(struct macDest));       //Estructura MAC Destino
+    struct macSrc* msrc 		= malloc(sizeof(struct macSrc));        //Estructura MAC Origen
 
     int sock_raw = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);            //Creamos un rawSocket
 

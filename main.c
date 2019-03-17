@@ -52,12 +52,15 @@ int main(){
 
     sendbuff = (unsigned char*) malloc(64);                             //Reservamos memoria para el buffer
     memset(sendbuff, 0, 64);
+	eth = (struct ethhdr*)(sendbuff);
 
     construirCabezeraEthernet(eth, msrc, mdest, &total_len, sendbuff);  //Construimos la cabezera ethernet
 
     construirCabezeraIp(iph, &total_len, ifreq_ip, sendbuff);            //Construimos la cabezera ip
 
     do{
+
+		printf("Enviando frame MAC = %x : %x : %x : %x : %x : %x\n", eth->h_source[0], eth->h_source[1], eth->h_source[2], eth->h_source[3], eth->h_source[4], eth->h_source[5]);
 
         enviarFrame(sadr_ll, sock_raw, sendbuff, mdest, if_number);     //Enviamos el frame
 
@@ -79,7 +82,9 @@ int main(){
             }
         }
 
-        if(op == 1 || repeticiones > 0) cambiarMacOrigenEthernet(eth, msrc, modoDeUso);
+        if(op == 1 || repeticiones > 0){
+			cambiarMacOrigenEthernet(eth, msrc, modoDeUso);
+		}
 
     }while(op == 1 || repeticiones > 0);
 

@@ -93,7 +93,7 @@ void construirCabezeraIp(struct iphdr* iph, int *total_len, struct ifreq* ifreq_
 void enviarFrame(struct sockaddr_ll* sadr_ll, int sock_raw, unsigned char* sendbuff, struct macDest* mdest, int if_number){
 
     sadr_ll->sll_ifindex = if_number;        //Numero de interfaz
-    sadr_ll->sll_halen = ETH_ALEN;   //Tamaño de la direccion
+    sadr_ll->sll_halen = ETH_ALEN;          //Tamaño de la direccion
     sadr_ll->sll_addr[0] = mdest->DESTMAC[0];
     sadr_ll->sll_addr[1] = mdest->DESTMAC[1];
     sadr_ll->sll_addr[2] = mdest->DESTMAC[2];

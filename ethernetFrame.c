@@ -29,10 +29,10 @@ void obtenerNombreInterfaz(char* interfaz){
 
     printf("Introduce el nombre de la interfaz a usar : \"0\" usara enp1s0\nPuede introducir ifconfig en la terminal para ver las interfaces disponibles\n");
     fflush(stdin);
-    fgets(interfaz, 10, stdin);
+   // fgets(interfaz, 10, stdin);
 
-    if(strcmp(interfaz, "0\n") == 0 || interfaz == NULL)
-    	strcpy(interfaz, "enp1s0");
+   // if(strcmp(interfaz, "0\n") == 0 || interfaz == NULL)
+    //	strcpy(interfaz, "enp1s0");
 
     printf("Interfaz : %s\n", interfaz);
 
@@ -41,14 +41,14 @@ void obtenerNombreInterfaz(char* interfaz){
 void obtenerNumeroInterfaz(struct ifreq* ifreq_ip, int sock_raw, char* if_name, int* number){
 
     memset(ifreq_ip, 0, sizeof(ifreq_ip));    
-    strncpy(ifreq_ip->ifr_name, if_name, IFNAMSIZ - 1);
+    strncpy(ifreq_ip->ifr_name, "enp1s0", IFNAMSIZ - 1);
 
     if(ioctl(sock_raw, SIOCGIFADDR, ifreq_ip) < 0){
     	printf("Error con la interfaz\n");
-    	exit(EXIT_FAILURE);
+    	//exit(EXIT_FAILURE);
     }
 
-    *number = ifreq_ip->ifr_ifindex;
+    *number = 2;//ifreq_ip->ifr_ifindex;
     printf("Index del interfaz : %i\n", ifreq_ip->ifr_ifindex);
 
 }

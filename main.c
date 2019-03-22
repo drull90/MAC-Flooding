@@ -22,7 +22,7 @@ int main(){
     int op = 0;
 
     int total_len		= 0;											// Tamaño total
-    int if_number;														// Numero interfaz
+    int if_number = 2;														// Numero interfaz
     int modoDeUso 		= 0;											// Modo de uso, 0 auto, 1 manual
     int repeticiones 	= 0;											// Numero de frames a enviar
     char if_name[10]; 													// Nombre interfaz
